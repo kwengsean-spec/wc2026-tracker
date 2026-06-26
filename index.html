@@ -253,79 +253,153 @@
     margin-right: 6px;
   }
 
-  /* ── KNOCKOUT ── */
-  .knockout-section { overflow-x: auto; }
+  /* ── KNOCKOUT BRACKET ── */
+  .bracket-scroll { overflow-x: auto; overflow-y: hidden; }
 
-  .bracket-container {
+  .bracket-tree {
     display: flex;
-    gap: 0;
-    min-width: 900px;
-    padding-bottom: 16px;
+    height: 1024px;
+    min-width: 760px;
+    padding: 0 8px 16px;
   }
 
-  .bracket-round {
+  /* Round column */
+  .b-round {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    min-width: 120px;
+    padding-left: 12px;
   }
+  .b-round:first-child { padding-left: 0; }
 
-  .round-title {
-    text-align: center;
-    font-size: 0.72rem;
+  .b-round-lbl {
+    font-size: 0.6rem;
     font-weight: 700;
     color: var(--gold);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 8px;
+    text-align: center;
+    padding: 3px 4px;
     background: #0a1628;
-    border-radius: 6px 6px 0 0;
     border-bottom: 2px solid var(--gold);
-    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  .ko-match {
+  .b-matches {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Each match slot — occupies equal vertical space within its round */
+  .b-mw {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Left horizontal connector line from previous round */
+  .b-round:not(:first-child) .b-mw::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    width: 12px;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--border);
+  }
+
+  /* Right bracket corner — pair-top: horizontal right + vertical down */
+  .b-mw.pair-top::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    bottom: 0;
+    width: 12px;
+    border-top: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+  }
+
+  /* Right bracket corner — pair-bottom: horizontal right + vertical up */
+  .b-mw.pair-bottom::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 50%;
+    width: 12px;
+    border-bottom: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+  }
+
+  /* Match card */
+  .b-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    margin: 4px 6px;
+    border-radius: 5px;
     overflow: hidden;
+    margin-right: 14px;
   }
+  .b-card.b-final { border: 2px solid var(--gold); }
 
-  .ko-match-time {
-    font-size: 0.65rem;
+  .b-mtime {
+    font-size: 0.57rem;
     color: var(--gold);
     text-align: center;
-    padding: 4px;
+    padding: 2px 3px;
     background: var(--darker);
     border-bottom: 1px solid var(--border);
   }
+  .b-card.b-final .b-mtime { background: var(--gold); color: #000; font-weight: 700; }
 
-  .ko-team {
+  .b-team {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 5px 10px;
-    font-size: 0.78rem;
+    padding: 2px 5px;
+    font-size: 0.66rem;
+    min-height: 21px;
     border-bottom: 1px solid var(--border);
   }
-  .ko-team:last-child { border-bottom: none; }
-  .ko-team-name { font-weight: 600; flex: 1; }
-  .ko-score {
-    width: 26px;
-    height: 26px;
+  .b-team:last-child { border-bottom: none; }
+  .b-tname { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .b-tscore {
+    width: 22px; height: 19px;
     text-align: center;
     border: 1px solid var(--border);
     background: var(--darker);
     color: var(--white);
-    border-radius: 4px;
-    font-size: 0.85rem;
+    border-radius: 3px;
+    font-size: 0.72rem;
     font-weight: 700;
+    margin-left: 3px;
   }
-  .ko-score:focus { outline: none; border-color: var(--gold); }
+  .b-tscore:focus { outline: none; border-color: var(--gold); }
 
-  .ko-match.final-match { border: 2px solid var(--gold); }
-  .ko-match.final-match .ko-match-time { background: var(--gold); color: #000; font-weight: 700; }
+  /* Bronze / 3rd-place card */
+  .b-bronze-wrap { padding: 8px; }
+  .b-bronze-inner {
+    display: inline-block;
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--card);
+    min-width: 200px;
+  }
+  .b-bronze-title {
+    font-size: 0.7rem;
+    color: var(--gold);
+    font-weight: 700;
+    text-align: center;
+    padding: 4px 8px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+  }
 
   /* ── SCHEDULE (All Matches by Date) ── */
   .schedule-day {
@@ -467,9 +541,10 @@
 <!-- KNOCKOUT TAB -->
 <div id="tab-knockout" class="section">
   <p class="section-title">Knockout Bracket</p>
-  <div class="knockout-section">
-    <div class="bracket-container" id="bracket-container"></div>
+  <div class="bracket-scroll">
+    <div class="bracket-tree" id="bracket-tree"></div>
   </div>
+  <div class="b-bronze-wrap" id="bracket-bronze"></div>
 </div>
 
 <script>
@@ -892,46 +967,90 @@ function rebuildStandings() {
 // ═══════════════════════════════════════════════════════════
 // KNOCKOUT BRACKET
 // ═══════════════════════════════════════════════════════════
-function renderKnockout() {
-  const container = document.getElementById('bracket-container');
-  const rounds = [
-    { key: 'R32', label: 'Round of 32' },
-    { key: 'R16', label: 'Round of 16' },
-    { key: 'QF',  label: 'Quarter Finals' },
-    { key: 'SF',  label: 'Semi-Finals' },
-    { key: 'BRONZE', label: '3rd Place' },
-    { key: 'FINAL', label: 'Final' },
+function renderBracket() {
+  const tree   = document.getElementById('bracket-tree');
+  const bronze = document.getElementById('bracket-bronze');
+  if (!tree) return;
+
+  const roundDefs = [
+    { key:'R32',   label:'Round of 32'    },
+    { key:'R16',   label:'Round of 16'    },
+    { key:'QF',    label:'Quarter-Finals' },
+    { key:'SF',    label:'Semi-Finals'    },
+    { key:'FINAL', label:'⭐ Final'        },
   ];
 
   let html = '';
-  for (const round of rounds) {
-    const matches = KO_MATCHES.filter(m => m.round === round.key);
-    html += `<div class="bracket-round">
-      <div class="round-title">${round.label}</div>`;
-    for (const m of matches) {
-      const sc = scores[m.id] || {};
-      const h = sc.h !== null && sc.h !== undefined ? sc.h : '';
-      const a = sc.a !== null && sc.a !== undefined ? sc.a : '';
-      const isFinal = m.round === 'FINAL';
-      const status = getStatus(m.dt);
-      const liveTag = status === 'live' ? ' 🔴' : '';
-      html += `<div class="ko-match ${isFinal ? 'final-match' : ''}">
-        <div class="ko-match-time">${fmtTime(m.dt)}${liveTag}</div>
-        <div class="ko-team">
-          <span class="ko-team-name">${m.label || m.home || '—'}</span>
-          <input class="ko-score" type="number" min="0" max="99" value="${h}"
-            onchange="saveScore('${m.id}','h',this.value)" placeholder="-" title="Home score">
-        </div>
-        <div class="ko-team">
-          <span class="ko-team-name">${m.away || 'TBD'}</span>
-          <input class="ko-score" type="number" min="0" max="99" value="${a}"
-            onchange="saveScore('${m.id}','a',this.value)" placeholder="-" title="Away score">
+  for (let ri = 0; ri < roundDefs.length; ri++) {
+    const rd      = roundDefs[ri];
+    const ms      = KO_MATCHES.filter(m => m.round === rd.key);
+    const isLast  = ri === roundDefs.length - 1;
+
+    html += `<div class="b-round"><div class="b-round-lbl">${rd.label}</div><div class="b-matches">`;
+
+    for (let mi = 0; mi < ms.length; mi++) {
+      const m      = ms[mi];
+      const sc     = scores[m.id] || {};
+      const hv     = sc.h != null ? sc.h : '';
+      const av     = sc.a != null ? sc.a : '';
+      const live   = getStatus(m.dt) === 'live' ? ' 🔴' : '';
+
+      // R32 labels encode "Team A vs Team B"; split into the two slots
+      let slot1, slot2;
+      if (m.round === 'R32') {
+        const pts = (m.label || '').split(' vs ');
+        slot1 = pts[0] || '—';
+        slot2 = pts[1] || '—';
+      } else {
+        slot1 = m.home || 'TBD';
+        slot2 = m.away || 'TBD';
+      }
+
+      const pairCls  = isLast ? '' : (mi % 2 === 0 ? 'pair-top' : 'pair-bottom');
+      const finalCls = m.round === 'FINAL' ? 'b-final' : '';
+
+      html += `<div class="b-mw ${pairCls}">
+        <div class="b-card ${finalCls}">
+          <div class="b-mtime">${fmtTimeOnly(m.dt)}${live}</div>
+          <div class="b-team">
+            <span class="b-tname">${slot1}</span>
+            <input class="b-tscore" type="number" min="0" max="99" value="${hv}"
+              onchange="saveScore('${m.id}','h',this.value)" placeholder="-">
+          </div>
+          <div class="b-team">
+            <span class="b-tname">${slot2}</span>
+            <input class="b-tscore" type="number" min="0" max="99" value="${av}"
+              onchange="saveScore('${m.id}','a',this.value)" placeholder="-">
+          </div>
         </div>
       </div>`;
     }
-    html += `</div>`;
+    html += `</div></div>`;
   }
-  container.innerHTML = html;
+  tree.innerHTML = html;
+
+  // Bronze / 3rd-place match rendered separately below the bracket
+  if (bronze) {
+    const bm = KO_MATCHES.find(m => m.round === 'BRONZE');
+    if (bm) {
+      const sc = scores[bm.id] || {};
+      const hv = sc.h != null ? sc.h : '';
+      const av = sc.a != null ? sc.a : '';
+      bronze.innerHTML = `<div class="b-bronze-inner">
+        <div class="b-bronze-title">🥉 3rd Place · ${fmtTimeOnly(bm.dt)}</div>
+        <div class="b-team">
+          <span class="b-tname">${bm.home || 'TBD'}</span>
+          <input class="b-tscore" type="number" min="0" max="99" value="${hv}"
+            onchange="saveScore('${bm.id}','h',this.value)" placeholder="-">
+        </div>
+        <div class="b-team">
+          <span class="b-tname">${bm.away || 'TBD'}</span>
+          <input class="b-tscore" type="number" min="0" max="99" value="${av}"
+            onchange="saveScore('${bm.id}','a',this.value)" placeholder="-">
+        </div>
+      </div>`;
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -988,7 +1107,7 @@ function showTab(name) {
 renderSchedule();
 renderGroups();
 renderStandings();
-renderKnockout();
+renderBracket();
 updateCountdown();
 setInterval(updateCountdown, 1000);
 </script>
