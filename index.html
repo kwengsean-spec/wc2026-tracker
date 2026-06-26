@@ -649,10 +649,48 @@ const KO_MATCHES = [
 // STATE — load from localStorage
 // ═══════════════════════════════════════════════════════════
 const STORAGE_KEY = 'wc2026_scores_v2';
+
+// Known results as of 2026-06-26 (SGT). localStorage overrides these.
+const DEFAULT_SCORES = {
+  // GROUP A
+  'A1':{h:2,a:0}, 'A2':{h:2,a:1}, 'A3':{h:1,a:1},
+  'A4':{h:1,a:0}, 'A5':{h:1,a:0}, 'A6':{h:0,a:3},
+  // GROUP B
+  'B1':{h:1,a:1}, 'B2':{h:1,a:1}, 'B3':{h:4,a:1},
+  'B4':{h:6,a:0}, 'B5':{h:3,a:1}, 'B6':{h:3,a:1},
+  // GROUP C
+  'C1':{h:1,a:1}, 'C2':{h:0,a:1}, 'C3':{h:0,a:1},
+  'C4':{h:3,a:0}, 'C5':{h:4,a:2}, 'C6':{h:0,a:3},
+  // GROUP D
+  'D1':{h:4,a:1}, 'D2':{h:2,a:0}, 'D3':{h:2,a:0},
+  'D4':{h:0,a:1}, 'D5':{h:3,a:2}, 'D6':{h:0,a:0},
+  // GROUP E
+  'E1':{h:7,a:1}, 'E2':{h:1,a:0}, 'E3':{h:2,a:1},
+  'E4':{h:0,a:0}, 'E5':{h:0,a:2}, 'E6':{h:2,a:1},
+  // GROUP F
+  'F1':{h:2,a:2}, 'F2':{h:5,a:1}, 'F3':{h:5,a:1},
+  'F4':{h:0,a:4}, 'F5':{h:1,a:1}, 'F6':{h:1,a:3},
+  // GROUP G (G5, G6 on 27 Jun — not yet played)
+  'G1':{h:1,a:1}, 'G2':{h:2,a:2}, 'G3':{h:0,a:0}, 'G4':{h:1,a:3},
+  // GROUP H (H5, H6 on 27 Jun — not yet played)
+  'H1':{h:0,a:0}, 'H2':{h:1,a:1}, 'H3':{h:4,a:0}, 'H4':{h:2,a:2},
+  // GROUP I (I5, I6 on 27 Jun — not yet played)
+  'I1':{h:3,a:1}, 'I2':{h:1,a:4}, 'I3':{h:3,a:0}, 'I4':{h:3,a:2},
+  // GROUP J (J5, J6 on 28 Jun — not yet played)
+  'J1':{h:3,a:0}, 'J2':{h:3,a:1}, 'J3':{h:2,a:0}, 'J4':{h:1,a:2},
+  // GROUP K (K5, K6 on 28 Jun — not yet played)
+  'K1':{h:1,a:1}, 'K2':{h:1,a:3}, 'K3':{h:5,a:0}, 'K4':{h:1,a:0},
+  // GROUP L (L5, L6 on 28 Jun — not yet played)
+  'L1':{h:4,a:2}, 'L2':{h:1,a:0}, 'L3':{h:0,a:0}, 'L4':{h:0,a:1},
+};
+
 let scores = {};
 
 function loadScores() {
-  try { scores = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { scores = {}; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    scores = Object.assign({}, DEFAULT_SCORES, saved);
+  } catch(e) { scores = Object.assign({}, DEFAULT_SCORES); }
 }
 function saveScore(id, side, val) {
   if (!scores[id]) scores[id] = {};
