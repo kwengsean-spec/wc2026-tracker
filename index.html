@@ -495,6 +495,135 @@
     height: 10px;
     border-radius: 50%;
   }
+
+  /* ── DASHBOARD ── */
+  .dash-snap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 600px) { .dash-snap { grid-template-columns: repeat(2, 1fr); } }
+
+  .snap-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .snap-num { font-size: 2rem; font-weight: 900; color: var(--gold); line-height: 1; }
+  .snap-label { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+
+  .dash-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .headline-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+  .headline-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
+
+  .qual-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .qual-chip {
+    background: var(--card);
+    border: 1px solid var(--green);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .qual-pos { font-size: 0.68rem; color: var(--muted); margin-left: 4px; }
+
+  .watch-add { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .watch-select {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--darker);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.85rem;
+  }
+  .watch-btn {
+    padding: 8px 14px;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .watch-btn:hover { background: #e67e22; }
+
+  .watch-empty {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 20px;
+    background: var(--card);
+    border-radius: 8px;
+    border: 1px dashed var(--border);
+  }
+
+  .watch-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .watch-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .watch-card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .watch-flag { font-size: 1.4rem; }
+  .watch-name { font-weight: 700; font-size: 0.9rem; flex: 1; }
+  .watch-pos { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+  .watch-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 4px;
+  }
+  .watch-remove:hover { color: var(--red); }
+
+  .watch-record { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .wrd { padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; }
+  .wrd-w { background: var(--green); color: #fff; }
+  .wrd-d { background: #555; color: #fff; }
+  .wrd-l { background: var(--red); color: #fff; }
+  .wrd-pts { background: var(--gold); color: #000; }
+  .wrd-gd { background: var(--border); color: var(--text); }
+
+  .watch-next {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
 </style>
 </head>
 <body>
@@ -509,6 +638,7 @@
   <button class="tab-btn" onclick="showTab('groups')">⚽ Groups</button>
   <button class="tab-btn" onclick="showTab('standings')">🏆 Standings</button>
   <button class="tab-btn" onclick="showTab('knockout')">⚡ Knockout</button>
+  <button class="tab-btn" onclick="showTab('dashboard')">🏠 Dashboard</button>
 </div>
 
 <!-- SCHEDULE TAB -->
@@ -545,6 +675,12 @@
     <div class="bracket-tree" id="bracket-tree"></div>
   </div>
   <div class="b-bronze-wrap" id="bracket-bronze"></div>
+</div>
+
+<!-- DASHBOARD TAB -->
+<div id="tab-dashboard" class="section">
+  <p class="section-title">Dashboard</p>
+  <div id="dash-container"></div>
 </div>
 
 <script>
@@ -1092,6 +1228,235 @@ function updateCountdown() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+const WATCHLIST_KEY = 'wc2026_watchlist_v1';
+let watchlist = [];
+
+function loadWatchlist() {
+  try { watchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY)) || []; }
+  catch(e) { watchlist = []; }
+}
+
+function saveWatchlist() {
+  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(watchlist));
+}
+
+function addToWatchlist(team) {
+  if (!team || watchlist.includes(team)) return;
+  watchlist.push(team);
+  saveWatchlist();
+  renderDashboard();
+}
+
+function removeFromWatchlist(idx) {
+  watchlist.splice(idx, 1);
+  saveWatchlist();
+  renderDashboard();
+}
+
+function getTeamGroup(team) {
+  for (const [letter, g] of Object.entries(GROUPS)) {
+    if (g.teams.includes(team)) return letter;
+  }
+  return null;
+}
+
+function getTeamNextMatch(team) {
+  const now = Date.now();
+  return FIXTURES
+    .filter(f => (f.home === team || f.away === team) && f.dt.getTime() > now)
+    .sort((a, b) => a.dt - b.dt)[0] || null;
+}
+
+function getGroupStanding(team) {
+  const letter = getTeamGroup(team);
+  if (!letter) return null;
+  const rows = calcStandings(letter);
+  const pos = rows.findIndex(r => r.name === team);
+  return pos >= 0 ? { pos: pos + 1, group: letter, pts: rows[pos].pts } : null;
+}
+
+function computeQualified() {
+  const qualified = [];
+  for (const letter of Object.keys(GROUPS)) {
+    const fixtures = FIXTURES.filter(f => f.group === letter);
+    const allPlayed = fixtures.every(f => {
+      const sc = scores[f.id];
+      return sc && sc.h != null && sc.a != null;
+    });
+    if (allPlayed) {
+      const rows = calcStandings(letter);
+      qualified.push({ team: rows[0].name, group: letter, pos: 1 });
+      qualified.push({ team: rows[1].name, group: letter, pos: 2 });
+    }
+  }
+  return qualified;
+}
+
+function generateHeadlines() {
+  let totalGoals = 0, totalPlayed = 0;
+  let biggestMargin = 0, biggestWinMatch = null;
+  let mostGoals = 0, highestMatch = null;
+  const perfectTeams = [];
+  const eliminated = [];
+  const topScorers = {};
+
+  for (const letter of Object.keys(GROUPS)) {
+    const fixtures = FIXTURES.filter(f => f.group === letter);
+    const allPlayed = fixtures.every(f => { const sc = scores[f.id]; return sc && sc.h != null && sc.a != null; });
+    const rows = calcStandings(letter);
+
+    if (allPlayed) {
+      eliminated.push(rows[2].name, rows[3].name);
+    }
+    for (const row of rows) {
+      if (row.mp >= 3 && row.w === 3) perfectTeams.push({ team: row.name, group: letter });
+      if (!topScorers[row.name]) topScorers[row.name] = 0;
+      topScorers[row.name] += row.gf;
+    }
+
+    for (const f of fixtures) {
+      const sc = scores[f.id];
+      if (!sc || sc.h == null || sc.a == null) continue;
+      const h = parseInt(sc.h), a = parseInt(sc.a);
+      if (isNaN(h) || isNaN(a)) continue;
+      totalGoals += h + a;
+      totalPlayed++;
+      const margin = Math.abs(h - a);
+      const total = h + a;
+      if (margin > biggestMargin) { biggestMargin = margin; biggestWinMatch = { f, h, a }; }
+      if (total > mostGoals) { mostGoals = total; highestMatch = { f, h, a }; }
+    }
+  }
+
+  const headlines = [];
+
+  if (biggestWinMatch) {
+    const { f, h, a } = biggestWinMatch;
+    const winner = h > a ? f.home : f.away;
+    const loser  = h > a ? f.away : f.home;
+    headlines.push(`💥 Biggest win: ${FLAGS[winner]||'🏳'} ${winner} beat ${FLAGS[loser]||'🏳'} ${loser} ${Math.max(h,a)}–${Math.min(h,a)}`);
+  }
+  if (highestMatch) {
+    const { f, h, a } = highestMatch;
+    headlines.push(`⚽ Goal fest: ${FLAGS[f.home]||'🏳'} ${f.home} ${h}–${a} ${f.away} ${FLAGS[f.away]||'🏳'} — ${h+a} goals total`);
+  }
+  for (const { team, group } of perfectTeams) {
+    headlines.push(`⭐ Perfect record: ${FLAGS[team]||'🏳'} ${team} won all 3 group matches in Group ${group}`);
+  }
+
+  // Top scoring team across finished group matches
+  const topEntry = Object.entries(topScorers).sort((a,b) => b[1]-a[1])[0];
+  if (topEntry && topEntry[1] > 0) {
+    headlines.push(`🎯 Top scorers: ${FLAGS[topEntry[0]]||'🏳'} ${topEntry[0]} with ${topEntry[1]} goals in the group stage`);
+  }
+
+  if (eliminated.length) {
+    headlines.push(`🚪 Eliminated: ${[...new Set(eliminated)].map(t => (FLAGS[t]||'🏳')+' '+t).join(', ')}`);
+  }
+
+  return { headlines, totalGoals, totalPlayed };
+}
+
+function renderDashboard() {
+  const container = document.getElementById('dash-container');
+  if (!container) return;
+
+  const { headlines, totalGoals, totalPlayed } = generateHeadlines();
+  const gpm = totalPlayed > 0 ? (totalGoals / totalPlayed).toFixed(2) : '—';
+
+  let groupsComplete = 0;
+  for (const letter of Object.keys(GROUPS)) {
+    const fixtures = FIXTURES.filter(f => f.group === letter);
+    if (fixtures.every(f => { const sc = scores[f.id]; return sc && sc.h != null && sc.a != null; })) groupsComplete++;
+  }
+
+  const qualified = computeQualified();
+  const allTeams = Object.values(GROUPS).flatMap(g => g.teams).sort();
+
+  let html = '';
+
+  // Snapshot stats
+  html += `<div class="dash-snap">
+    <div class="snap-stat"><div class="snap-num">${totalPlayed}</div><div class="snap-label">Matches Played</div></div>
+    <div class="snap-stat"><div class="snap-num">${totalGoals}</div><div class="snap-label">Total Goals</div></div>
+    <div class="snap-stat"><div class="snap-num">${gpm}</div><div class="snap-label">Goals / Match</div></div>
+    <div class="snap-stat"><div class="snap-num">${groupsComplete}/12</div><div class="snap-label">Groups Complete</div></div>
+  </div>`;
+
+  // Headlines
+  if (headlines.length) {
+    html += `<div class="dash-section-title">📰 Tournament Headlines</div><div class="headline-list">`;
+    for (const h of headlines) html += `<div class="headline-item">${h}</div>`;
+    html += `</div>`;
+  }
+
+  // Qualified teams
+  if (qualified.length) {
+    html += `<div class="dash-section-title">✅ Qualified for Round of 32 (${qualified.length}/24)</div><div class="qual-chips">`;
+    for (const q of qualified) {
+      html += `<div class="qual-chip">${FLAGS[q.team]||'🏳'} ${q.team}<span class="qual-pos">Grp ${q.group} #${q.pos}</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Watchlist
+  html += `<div class="dash-section-title">👀 My Team Watchlist</div>`;
+  html += `<div class="watch-add">
+    <select id="watch-select" class="watch-select">
+      <option value="">— Pick a team —</option>`;
+  for (const team of allTeams) {
+    if (!watchlist.includes(team)) html += `<option value="${team}">${FLAGS[team]||'🏳'} ${team}</option>`;
+  }
+  html += `</select>
+    <button class="watch-btn" onclick="addToWatchlist(document.getElementById('watch-select').value)">+ Watch</button>
+  </div>`;
+
+  if (watchlist.length === 0) {
+    html += `<div class="watch-empty">No teams tracked yet. Add a team above to follow their results and upcoming matches.</div>`;
+  } else {
+    html += `<div class="watch-cards">`;
+    for (let i = 0; i < watchlist.length; i++) {
+      const team = watchlist[i];
+      const letter = getTeamGroup(team);
+      const res = letter ? calcStandings(letter).find(r => r.name === team) : null;
+      const standing = getGroupStanding(team);
+      const next = getTeamNextMatch(team);
+      const flag = FLAGS[team] || '🏳';
+      const posLabel = standing ? `Grp ${standing.group} · #${standing.pos} · ${standing.pts}pts` : '';
+      const nextLabel = next
+        ? `Next: ${fmtTime(next.dt)} vs ${next.home === team ? (FLAGS[next.away]||'🏳')+' '+next.away : (FLAGS[next.home]||'🏳')+' '+next.home}`
+        : 'No upcoming group matches';
+
+      const w = res ? res.w : 0, d = res ? res.d : 0, l = res ? res.l : 0;
+      const pts = res ? res.pts : 0;
+      const gd = res ? res.gd : 0;
+
+      html += `<div class="watch-card">
+        <div class="watch-card-header">
+          <span class="watch-flag">${flag}</span>
+          <span class="watch-name">${team}</span>
+          <span class="watch-pos">${posLabel}</span>
+          <button class="watch-remove" onclick="removeFromWatchlist(${i})">✕</button>
+        </div>
+        <div class="watch-record">
+          <span class="wrd wrd-w">${w}W</span>
+          <span class="wrd wrd-d">${d}D</span>
+          <span class="wrd wrd-l">${l}L</span>
+          <span class="wrd wrd-pts">${pts}pts</span>
+          <span class="wrd wrd-gd">GD ${gd >= 0 ? '+'+gd : gd}</span>
+        </div>
+        <div class="watch-next">${nextLabel}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
 // TAB SWITCHING
 // ═══════════════════════════════════════════════════════════
 function showTab(name) {
@@ -1104,10 +1469,12 @@ function showTab(name) {
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
+loadWatchlist();
 renderSchedule();
 renderGroups();
 renderStandings();
 renderBracket();
+renderDashboard();
 updateCountdown();
 setInterval(updateCountdown, 1000);
 </script>
